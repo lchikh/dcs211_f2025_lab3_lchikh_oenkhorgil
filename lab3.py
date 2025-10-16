@@ -1,13 +1,33 @@
+from Student import Student
 from bs4 import BeautifulSoup as soup
 import requests
 import sys, os, csv
 from prettytable import PrettyTable
-
 from Student import Student
-
-
 from bs4 import BeautifulSoup
 from Student import Student
+
+def command_line():
+    if "--help" in sys.argv or len(sys.argv)==1:
+        print("Usage: python dcs211_lab3.py <write CSV? False/True> <optional: HTML filename>")
+        sys.exit(0)
+    
+    if len(sys.argv)==2:
+        current_dir = os.getcwd()
+        list_of_html=[]
+        for filename in os.listdir(current_dir):
+            if filename[-4:]=="html":
+                list_of_html.append(filename)
+        list_of_html=sorted(list_of_html)
+        print(f"HTML files found:\n          {'\n          '.join(list_of_html)}")
+        input(list_of_html[0])
+        if bool(eval(sys.argv[1].title()))==True: 
+            pass
+        if bool(eval(sys.argv[1].title()))==False:
+            pass
+
+
+
 
 def parseMinors(soup):
     '''Function to parse the DCS minors HTML and create dictionaries by year and by advisor.
