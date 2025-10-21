@@ -34,17 +34,16 @@ def parseMinors(soup):
     Parameters: 
         soup: BeautifulSoup object
     Returns: 
-        tuple containing dict_by_year, dict_by_advisor dictionaries
+        tuple containing by_year, by_advisor dictionaries
     '''
     by_year, by_adv = {}, {}
 
-    # locate the main table of students
     table = soup.find("table", {"id": "studentList"})
     if not table:
         return by_year, by_adv
 
-    # each student = one table row
-    for row in table.find_all("tr")[1:]:     # skip header
+    # Each student = one table row
+    for row in table.find_all("tr")[1:]:     # Skip header
         cols = row.find_all("td")
         if len(cols) < 10:
             continue
@@ -55,8 +54,12 @@ def parseMinors(soup):
         majors = [abbr.get_text() for abbr in cols[6].find_all("abbr")]
         minors = [abbr.get_text() for abbr in cols[7].find_all("abbr")]
         gecs   = [abbr.get_text() for abbr in cols[8].find_all("abbr")]
-        advisor = cols[9].get_text(strip=True)
+        adv_td = cols[9]
+        adv_span = adv_td.find("span")
+        if adv_span and adv_span.get_text(strip=True):
+            advisor = adv_span.get_text(strip=True)
 
+        # Create Student object containing all the appropriate information
         stu = Student(name, email, int(year), majors, minors, gecs, advisor)
 
         by_year.setdefault(year, []).append(stu)
@@ -74,10 +77,14 @@ def printOutput(by_year, by_adv):
     Returns:
         Three distinct tables
     '''
+    def name_key(stu):
+        last, first = stu.getCSVList()[:2]
+        return (last.lower(), first.lower())
+    
     roster_table = PrettyTable(["Student", "Email", "Year", "Major(s)", "Minor(s)", "Advisor"])
     for year in sorted(by_year.keys()):
-        # sort by last, first name for readability
-        for stu in sorted(by_year[year], key=lambda s: s.name):
+        # Sort by last, first name
+        for stu in sorted(by_year[year], key=name_key):
             row = stu.getCSVList()
             roster_table.add_row([f"{row[0]}, {row[1]}", row[2], row[3], row[4], row[5], row[7]])
     print(roster_table)
@@ -113,15 +120,15 @@ def main() -> None:
         print("Usage: python dcs211_lab3.py <writeCSV True/False> <optional: HTML filename>")
         sys.exit(0)
 
-    # first arg: writeCSV (accept True/False in any case form per spec)
+    # First argument: writeCSV (accept True/False in any case form per spec)
     writeCSV = False
     if len(sys.argv) > 1:
         try:
-            writeCSV = bool(eval(sys.argv[1].title()))  # e.g., 'false' -> False (per lab hint)
+            writeCSV = bool(eval(sys.argv[1].title())) 
         except Exception:
             sys.exit("First argument must be True or False (case-insensitive).")
 
-    # second arg: optional HTML filename; otherwise list .html files and prompt default
+    # Second argument: optional HTML filename; otherwise list .html files and prompt default
     if len(sys.argv) > 2:
         html_file = sys.argv[2]
     else:
@@ -135,20 +142,19 @@ def main() -> None:
         choice = input(f"\nEnter name of HTML source (return for default '{default}'): ").strip()
         html_file = choice if choice else default
 
-    # read HTML
+    # Read HTML
     try:
         with open(html_file, "r", encoding="utf-8") as fh:
             html_text = fh.read()
     except Exception:
         sys.exit(f"Cannot open or read {html_file}")
 
-    # parse
+    # Parse
     soup = BeautifulSoup(html_text, "html.parser")
     by_year, by_adv = parseMinors(soup)
 
-    # output
     if writeCSV:
-        writeCSVFiles(by_year)  # writes dcs_minors_<year>.csv files as in the example
+        writeCSVFiles(by_year) 
     else:
         printOutput(by_year, by_adv)
 
