@@ -7,27 +7,6 @@ from Student import Student
 from bs4 import BeautifulSoup
 from Student import Student
 
-def command_line():
-    if "--help" in sys.argv or len(sys.argv)==1:
-        print("Usage: python dcs211_lab3.py <write CSV? False/True> <optional: HTML filename>")
-        sys.exit(0)
-    
-    if len(sys.argv)==2:
-        current_dir = os.getcwd()
-        list_of_html=[]
-        for filename in os.listdir(current_dir):
-            if filename[-4:]=="html":
-                list_of_html.append(filename)
-        list_of_html=sorted(list_of_html)
-        print(f"HTML files found:\n          {'\n          '.join(list_of_html)}")
-        input(list_of_html[0])
-        if bool(eval(sys.argv[1].title()))==True: 
-            pass
-        if bool(eval(sys.argv[1].title()))==False:
-            pass
-
-
-
 
 def parseMinors(soup: BeautifulSoup) -> tuple[dict[str, list[Student]], dict[str, list[Student]]]:
     '''Function to parse the DCS minors HTML and create dictionaries by year and by advisor.
@@ -125,6 +104,10 @@ def writeCSVFiles(by_year: dict[str, list[Student]]) -> None:
 
 
 def main() -> None:
+    # if user enters wrong number of cla or asks for help
+    if "--help" in sys.argv or len(sys.argv)==1:
+        print("Usage: python dcs211_lab3.py <write CSV? False/True> <optional: HTML filename>")
+        sys.exit(0)
     # Command line argument for writing CSV file. Either True/False accepted
     writeCSV = False
     if len(sys.argv) > 1:
