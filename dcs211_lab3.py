@@ -42,8 +42,7 @@ def parseMinors(soup):
     if not table:
         return by_year, by_adv
 
-    # Each student = one table row
-    for row in table.find_all("tr")[1:]:     # Skip header
+    for row in table.find_all("tr")[1:]: 
         cols = row.find_all("td")
         if len(cols) < 10:
             continue
@@ -59,7 +58,6 @@ def parseMinors(soup):
         if adv_span and adv_span.get_text(strip=True):
             advisor = adv_span.get_text(strip=True)
 
-        # Create Student object containing all the appropriate information
         stu = Student(name, email, int(year), majors, minors, gecs, advisor)
 
         by_year.setdefault(year, []).append(stu)
@@ -83,7 +81,6 @@ def printOutput(by_year, by_adv):
     
     roster_table = PrettyTable(["Student", "Email", "Year", "Major(s)", "Minor(s)", "Advisor"])
     for year in sorted(by_year.keys()):
-        # Sort by last, first name
         for stu in sorted(by_year[year], key=name_key):
             row = stu.getCSVList()
             roster_table.add_row([f"{row[0]}, {row[1]}", row[2], row[3], row[4], row[5], row[7]])
@@ -116,11 +113,7 @@ def writeCSVFiles(by_year: dict) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) > 1 and sys.argv[1].lower() == "--help":
-        print("Usage: python dcs211_lab3.py <writeCSV True/False> <optional: HTML filename>")
-        sys.exit(0)
-
-    # First argument: writeCSV (accept True/False in any case form per spec)
+    # Accepts either True/False for writeCSV
     writeCSV = False
     if len(sys.argv) > 1:
         try:
@@ -128,7 +121,7 @@ def main() -> None:
         except Exception:
             sys.exit("First argument must be True or False (case-insensitive).")
 
-    # Second argument: optional HTML filename; otherwise list .html files and prompt default
+    # Optional for the user to list a specific html file name. If left blank, the appropriate html files will be listed alphabetically to choose from.
     if len(sys.argv) > 2:
         html_file = sys.argv[2]
     else:
@@ -142,14 +135,12 @@ def main() -> None:
         choice = input(f"\nEnter name of HTML source (return for default '{default}'): ").strip()
         html_file = choice if choice else default
 
-    # Read HTML
     try:
         with open(html_file, "r", encoding="utf-8") as fh:
             html_text = fh.read()
     except Exception:
         sys.exit(f"Cannot open or read {html_file}")
 
-    # Parse
     soup = BeautifulSoup(html_text, "html.parser")
     by_year, by_adv = parseMinors(soup)
 
